@@ -7,6 +7,43 @@ Generate short email subject lines from message bodies with zero-shot **DistilGP
 
 On a fixed sample of 100 AESLC emails (seed 42), the extractive baseline still outscores DistilGPT-2. That comparison is part of the evaluation, not a claim of state-of-the-art performance.
 
+## Quick demo (interviews)
+
+After `pip install -r requirements.txt`:
+
+```bash
+python app.py
+```
+
+Windows: `.\run_demo.ps1` · Linux/macOS: `./run_demo.sh`
+
+Opens the Gradio UI: paste an email body, compare **extractive baseline** vs **DistilGPT-2 (best-of-3)**. First run downloads `distilgpt2` (~80 MB).
+
+Optional hosted demo: deploy with `gradio deploy` (Hugging Face Spaces) using `app.py` + `requirements.txt` + `src/`.
+
+## Pipeline (DistilGPT-2 + ROUGE)
+
+```
+AESLC email body (50 words)
+    → clean / truncate
+    → [baseline] first 5 content words (title-cased)
+    → [model] DistilGPT-2 samples → cleanup → best-of-N (keyword overlap)
+    → compare to human subject_line
+    → ROUGE-1, ROUGE-2, ROUGE-L  →  outputs/metrics.json
+```
+
+Code: `src/email_subject_generator/` · batch eval: `python scripts/run_benchmark.py --samples 100`
+
+## Reproducible artifacts
+
+| File | Contents |
+|------|----------|
+| [`outputs/metrics.json`](outputs/metrics.json) | ROUGE per method (naive, zero-shot, best-of-N), n=100, seed=42 |
+| [`outputs/generated_subjects_aeslc_benchmark.csv`](outputs/generated_subjects_aeslc_benchmark.csv) | Per-email predictions |
+| [`outputs/generated_subjects_aeslc_benchmark.json`](outputs/generated_subjects_aeslc_benchmark.json) | Same rows (JSON) |
+
+Regenerate: `python scripts/run_benchmark.py --samples 100 --seed 42`
+
 ## Features
 
 - DistilGPT-2 subject generation with cleanup and best-of-N ranking
